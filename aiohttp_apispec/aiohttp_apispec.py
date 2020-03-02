@@ -95,10 +95,12 @@ class AiohttpApiSpec:
         static_files = Path(__file__).parent / "static"
         app.router.add_static(static_path, static_files)
 
-        with open(str(static_files / "index.html")) as swg_tmp:
-            tmp = Template(swg_tmp.read()).render(path=self.url, static=static_path)
-
-        async def swagger_view(_):
+        async def swagger_view(request):
+            with open(str(static_files / "index.html")) as swg_tmp:
+                tmp = Template(swg_tmp.read()).render(
+                    path=self.url,
+                    static=static_path,
+                    static_prefix=request.headers.get('X-Forwarded-Prefix', ''))
             return web.Response(text=tmp, content_type="text/html")
 
         app.router.add_route("GET", view_path, swagger_view, name="swagger.docs")
